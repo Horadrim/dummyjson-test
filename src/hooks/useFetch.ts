@@ -11,12 +11,14 @@ export const useFetch = <T>(url: string | null): FetchProps<T> => {
 		const fetchData = async () => {
 			setIsPending(true);
 			try {
+				const controller = new AbortController();
 				const response = await fetch(url);
 				if (!response.ok) throw new Error(response.statusText);
 				const json = await response.json();
 				setIsPending(false);
 				setData(json);
 				setError(null);
+				return () => controller.abort();
 			} catch (error) {
 				setError(`${error} Could not fetch data`);
 				setIsPending(false);

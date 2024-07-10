@@ -1,6 +1,6 @@
 import { SearchResutsProps } from "../interfaces/searchResults";
 import { Product } from "../interfaces/products";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import ProductRow from "./product";
 import Loader from "./loader";
 
@@ -10,10 +10,10 @@ export default function SearchResults({
 	isPending,
 	changeUrl,
 }: SearchResutsProps) {
-	const loaderRef = useRef(null);
+	const loaderRef = useRef<HTMLDivElement>(null);
 
 	const [displayedResults, setDisplayedResults] = useState<Product[]>([]);
-
+	const [skip, setSkip] = useState<number>(0);
 	const [selectedProducts, setSelectedProducts] = useState<Set<number>>(
 		new Set()
 	);
@@ -29,36 +29,38 @@ export default function SearchResults({
 		setSelectedProducts(newSet);
 	};
 
-	const handleLoadMore = () => {
-		const hasMore = results.total - results.skip > 0;
-
-		if (hasMore) {
+	const handleLoadMore = useCallback(() => {
+		if (results.total - skip > 0 && !isPending) {
 			const skipParameter = displayedResults.length;
 			const urlDetails = new URL(url!);
 			const baseUrl = urlDetails.origin + urlDetails.pathname;
 			const urlParams = urlDetails.searchParams;
-			const searchParameter = urlParams.get("q");
-			const limitParameter = urlParams.get("limit");
+			const searchParameter = urlParams.get("q")!;
+			const limitParameter = urlParams.get("limit")!;
 			const newUrl = new URL(baseUrl);
 			const newParams = new URLSearchParams();
-			newParams.append("q", searchParameter!);
-			newParams.append("skip", skipParameter!.toString());
-			newParams.append("limit", limitParameter!.toString());
+			newParams.append("q", searchParameter);
+			newParams.append("skip", skipParameter.toString());
+			newParams.append("limit", limitParameter.toString());
 			newUrl.search = newParams.toString();
 			changeUrl(newUrl.toString());
 		}
-	};
+	}, [results.total, skip, isPending, displayedResults.length, url, changeUrl]);
 
 	useEffect(() => {
-		const skip = results?.skip ?? 0;
-
-		if (skip > 0) {
+		if (results.skip > 0) {
 			setDisplayedResults((prev) => [...prev, ...results.products]);
 		} else {
-			setDisplayedResults([...results.products]);
+			setDisplayedResults(results.products);
 			setSelectedProducts(new Set());
+			setSkip(0);
 		}
+		if (results.total > results.skip) {
+			setSkip((prev) => prev + results.limit);
+		}
+	}, [results]);
 
+	useEffect(() => {
 		const observer = new IntersectionObserver((entries) => {
 			const target = entries[0];
 			if (target.isIntersecting) {
@@ -76,7 +78,7 @@ export default function SearchResults({
 				observer.unobserve(loader);
 			}
 		};
-	}, [results]);
+	}, [handleLoadMore]);
 
 	return (
 		<div className="results-box">
