@@ -56,6 +56,7 @@ export default function SearchResults({
 			setDisplayedResults((prev) => [...prev, ...results.products]);
 		} else {
 			setDisplayedResults([...results.products]);
+			setSelectedProducts(new Set());
 		}
 
 		const observer = new IntersectionObserver((entries) => {
