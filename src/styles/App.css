@@ -1,0 +1,14 @@
+.container {
+	padding: 1.5rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.results-box {
+	max-height: 13rem;
+	overflow-y: auto;
+	max-width: 330px;
+}
+.error {
+	color: red;
+}

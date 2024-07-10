@@ -1,0 +1,12 @@
+.search-box {
+	width: 300px;
+	padding: 10px;
+	border: 3px solid #000;
+	margin-bottom: 10px;
+	font-size: larger;
+}
+
+.search-box:active,
+.search-box:focus {
+	outline: none;
+}
