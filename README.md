@@ -18,4 +18,3 @@ npm run preview
 ```
 
 ![diagram](./search-component-task.png)
-"# dummyjson-test"
